@@ -30,7 +30,6 @@ app.get('/api/health', (req, res) => res.json({ ok: true }));
 app.get('/', (req, res) => {
   res.send('<h1>Welcome to Avarri Backend</h1><p>Your API is running!</p>');
 });
-const PORT = process.env.PORT || 5000;
 app.use("/api/upload", require("./routes/upload"));
 
 app.listen(PORT, () => {
