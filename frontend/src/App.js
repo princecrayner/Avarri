@@ -1,4 +1,5 @@
 import React from "react";
+import VideoCircle from "./components/VideoCircle";
 
 function App() {
   const handleUpload = async (event) => {
@@ -63,6 +64,7 @@ function App() {
     className="w-1/2 px-4 py-2 border rounded-full"
   />
 
+<div className="flex items-center gap-4">
   <label className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 cursor-pointer">
     Upload
     <input
@@ -72,6 +74,8 @@ function App() {
       className="hidden"
     />
   </label>
+  <VideoCircle />
+</div>
 </header>
 
       {/* Video grid */}
