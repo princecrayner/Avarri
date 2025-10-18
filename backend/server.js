@@ -1,70 +1,100 @@
+// server.js
 import express from "express";
 import mongoose from "mongoose";
 import cors from "cors";
 import multer from "multer";
 import path from "path";
-import { fileURLToPath } from "url";
-import Video from "./models/Video.js";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+import fs from "fs";
 
 const app = express();
 app.use(cors());
 app.use(express.json());
-app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
-// Connect MongoDB
-mongoose.connect("mongodb+srv://princecrayner:JUNIOR80@cluster.mongodb.net/avarri", {
-  useNewUrlParser: true,
-  useUnifiedTopology: true
-}).then(() => console.log("MongoDB connected"))
-  .catch(err => console.error(err));
-
-// Storage config
-const storage = multer.diskStorage({
-  destination: "./uploads/",
-  filename: (req, file, cb) => {
-    cb(null, Date.now() + path.extname(file.originalname));
+// ✅ MongoDB connection
+mongoose.connect(
+  "mongodb+srv://princecrayner_db_user:JUNIOR80@cluster0.toxhpdn.mongodb.net/avarri?retryWrites=true&w=majority&appName=Cluster0",
+  {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
   }
+)
+  .then(() => console.log("✅ MongoDB connected successfully"))
+  .catch((err) => console.error("❌ MongoDB connection error:", err));
+
+// ✅ Create Video Schema
+const videoSchema = new mongoose.Schema({
+  filename: String,
+  originalname: String,
+  views: { type: Number, default: 0 },
+  likes: { type: Number, default: 0 },
+  uploadDate: { type: Date, default: Date.now },
 });
+
+const Video = mongoose.model("Video", videoSchema);
+
+// ✅ Upload configuration
+const uploadDir = path.join(process.cwd(), "uploads");
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir);
+}
+
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, uploadDir);
+  },
+  filename: function (req, file, cb) {
+    cb(null, Date.now() + "-" + file.originalname);
+  },
+});
+
 const upload = multer({ storage });
 
-// Upload route
+// ✅ Upload endpoint
 app.post("/upload", upload.single("video"), async (req, res) => {
   try {
     const video = new Video({
-      title: req.body.title || req.file.originalname,
-      filename: req.file.filename
+      filename: req.file.filename,
+      originalname: req.file.originalname,
     });
     await video.save();
-    res.json(video);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(200).json({ message: "Video uploaded successfully", video });
+  } catch (error) {
+    console.error("Error uploading video:", error);
+    res.status(500).json({ message: "Upload failed" });
   }
 });
 
-// Get all videos
+// ✅ Get all videos
 app.get("/videos", async (req, res) => {
-  const videos = await Video.find().sort({ uploadedAt: -1 });
+  const videos = await Video.find().sort({ uploadDate: -1 });
   res.json(videos);
 });
 
-// Increase view count
-app.post("/videos/:id/view", async (req, res) => {
+// ✅ Serve video files
+app.use("/uploads", express.static(uploadDir));
+
+// ✅ Watch a video (increments views)
+app.get("/video/:id", async (req, res) => {
   const video = await Video.findById(req.params.id);
-  video.views++;
+  if (!video) return res.status(404).json({ message: "Video not found" });
+
+  video.views += 1;
   await video.save();
-  res.json({ views: video.views });
+
+  res.json(video);
 });
 
-// Like a video
-app.post("/videos/:id/like", async (req, res) => {
+// ✅ Like a video
+app.post("/like/:id", async (req, res) => {
   const video = await Video.findById(req.params.id);
-  video.likes++;
+  if (!video) return res.status(404).json({ message: "Video not found" });
+
+  video.likes += 1;
   await video.save();
-  res.json({ likes: video.likes });
+
+  res.json(video);
 });
 
+// ✅ Start server
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
