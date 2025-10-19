@@ -1,126 +1,133 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
 
 function App() {
   const [videos, setVideos] = useState([]);
-  const [videoTitle, setVideoTitle] = useState("");
-  const [uploadProgress, setUploadProgress] = useState(0);
-
-  const BACKEND = process.env.REACT_APP_API_URL || "https://avarri-1.onrender.com";
+  const [file, setFile] = useState(null);
+  const [title, setTitle] = useState("");
+  const [uploading, setUploading] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [search, setSearch] = useState("");
 
   useEffect(() => {
-    fetch(`${BACKEND}/videos`)
-      .then((r) => r.json())
+    fetch("https://avarri-1.onrender.com/videos")
+      .then((res) => res.json())
       .then((data) => setVideos(data))
-      .catch((e) => console.error("Failed to fetch videos:", e));
+      .catch((err) => console.error(err));
   }, []);
 
-  const handleUpload = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
+  const handleFileChange = (e) => {
+    setFile(e.target.files[0]);
+  };
 
-    // Client-side check: must be video and common playable formats
-    if (!file.type.startsWith("video/")) {
-      alert("Please pick a video file (mp4/webm/etc).");
+  const handleUpload = async () => {
+    if (!file || !title.trim()) {
+      alert("Please select a video and enter a title before uploading.");
       return;
     }
 
-    if (!videoTitle.trim()) {
-      alert("Please enter a title before uploading.");
-      return;
-    }
+    const formData = new FormData();
+    formData.append("video", file);
+    formData.append("title", title);
 
-    const form = new FormData();
-    form.append("video", file);
-    form.append("title", videoTitle.trim());
+    setUploading(true);
+    setProgress(0);
 
     try {
-      const res = await axios.post(`${BACKEND}/upload`, form, {
-        headers: { "Content-Type": "multipart/form-data" },
-        onUploadProgress: (p) => {
-          const percent = Math.round((p.loaded * 100) / p.total);
-          setUploadProgress(percent);
-        },
-        timeout: 0,
+      const response = await fetch("https://avarri-1.onrender.com/upload", {
+        method: "POST",
+        body: formData,
       });
 
-      if (res.status === 200) {
-        const newVideo = res.data;
+      if (response.ok) {
+        alert("Video uploaded successfully!");
+        setFile(null);
+        setTitle("");
+        setUploading(false);
+        setProgress(100);
+        const newVideo = await response.json();
         setVideos((prev) => [newVideo, ...prev]);
-        setVideoTitle("");
-        setUploadProgress(0);
       } else {
-        alert("Upload failed");
-        setUploadProgress(0);
+        alert("Upload failed.");
       }
     } catch (err) {
-      console.error("Upload error:", err);
-      alert("Upload failed. See console.");
-      setUploadProgress(0);
+      console.error(err);
+      alert("An error occurred during upload.");
     }
   };
 
-  const handlePlay = async (id, url) => {
-    // increment views on server
-    try {
-      await fetch(`${BACKEND}/videos/${id}/view`, { method: "POST" });
-      // update local count quickly
-      setVideos((prev) =>
-        prev.map((v) => (v._id === id ? { ...v, views: (v.views || 0) + 1 } : v))
-      );
-      // open in new tab to watch full or you can implement modal
-      window.open(url, "_blank");
-    } catch (e) {
-      console.error("Error incrementing view", e);
-    }
-  };
+  const filteredVideos = videos.filter((v) =>
+    v.title.toLowerCase().includes(search.toLowerCase())
+  );
 
   return (
     <div className="bg-gray-100 min-h-screen">
+      {/* Header */}
       <header className="bg-white shadow-md p-4 flex justify-between items-center">
         <h1 className="text-xl font-bold text-red-600">Avarri</h1>
 
-        <input type="text" placeholder="Search..." className="w-1/2 px-4 py-2 border rounded-full" />
+        {/* Search Bar */}
+        <input
+          type="text"
+          placeholder="Search..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="w-1/2 px-4 py-2 border rounded-full"
+        />
 
-        <div className="flex items-center gap-4">
+        {/* Upload Button */}
+        <label className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 cursor-pointer">
+          Select Video
+          <input
+            type="file"
+            accept="video/*"
+            onChange={handleFileChange}
+            className="hidden"
+          />
+        </label>
+      </header>
+
+      {/* Upload Section */}
+      {file && (
+        <div className="bg-white p-4 shadow-md rounded-lg m-4">
+          <video
+            src={URL.createObjectURL(file)}
+            controls
+            className="w-full h-64 rounded-md mb-3"
+          ></video>
           <input
             type="text"
             placeholder="Enter video title..."
-            value={videoTitle}
-            onChange={(e) => setVideoTitle(e.target.value)}
-            className="px-3 py-2 border rounded-md w-64"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            className="w-full p-2 border rounded-md mb-3"
           />
-
-          <label className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 cursor-pointer">
-            Upload
-            <input type="file" accept="video/*" onChange={handleUpload} className="hidden" />
-          </label>
-        </div>
-      </header>
-
-      {uploadProgress > 0 && (
-        <div className="p-4">
-          <div className="w-full bg-gray-300 rounded-full h-4">
-            <div className="bg-blue-600 h-4 rounded-full" style={{ width: `${uploadProgress}%` }} />
-          </div>
-          <p className="text-center mt-2 font-medium text-blue-700">Uploading... {uploadProgress}%</p>
+          <button
+            onClick={handleUpload}
+            className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
+            disabled={uploading}
+          >
+            {uploading ? `Uploading... ${progress}%` : "Upload Video"}
+          </button>
         </div>
       )}
 
+      {/* Video Grid */}
       <main className="p-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {videos.map((video) => (
-          <div key={video._id} className="bg-white rounded-xl overflow-hidden shadow hover:shadow-lg">
-            <video controls className="w-full h-48 object-cover">
-              <source src={video.videoUrl} type="video/mp4" />
-              <source src={video.videoUrl} />
-              Your browser does not support this video format.
-            </video>
+        {filteredVideos.map((video) => (
+          <div
+            key={video._id}
+            className="bg-white rounded-xl overflow-hidden shadow hover:shadow-lg transition"
+          >
+            <video
+              src={video.url}
+              controls
+              className="w-full h-48 object-cover"
+            ></video>
             <div className="p-4">
               <h2 className="text-lg font-semibold">{video.title}</h2>
-              <p className="text-sm text-gray-600">Views: {video.views || 0} • Likes: {video.likes || 0}</p>
-              <div className="mt-2">
-                <button onClick={() => handlePlay(video._id, video.videoUrl)} className="px-3 py-1 bg-gray-100 rounded">Watch</button>
-              </div>
+              <p className="text-sm text-gray-600">
+                Views: {video.views || 0} • Likes: {video.likes || 0}
+              </p>
             </div>
           </div>
         ))}
@@ -130,3 +137,4 @@ function App() {
 }
 
 export default App;
+
