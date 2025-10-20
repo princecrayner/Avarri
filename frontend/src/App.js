@@ -88,12 +88,12 @@ function App() {
             key={video._id}
             className="bg-white rounded-xl overflow-hidden shadow hover:shadow-lg"
           >
-            <video
-              src={`https://avarri-1.onrender.com/${video.filePath}`}
-              controls
-              className="w-full h-48 object-cover"
-            ></video>
-            <div className="p-4">
+           <video
+  src={`https://avarri-1.onrender.com/uploads/${video.filename}`}
+  controls
+  className="rounded-xl w-full"
+></video>
+ <div className="p-4">
               <h2 className="text-lg font-semibold">{video.title}</h2>
               <p className="text-sm text-gray-500">
                 Views: {video.views} • Likes: {video.likes}
