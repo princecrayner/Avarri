@@ -7,15 +7,16 @@ import path from "path";
 import fs from "fs";
 import { fileURLToPath } from "url";
 
-// Setup for ES modules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Ensure upload directory exists
-const uploadPath = path.join(__dirname, "uploads");
+// ✅ ensure uploads directory always exists
+const uploadPath = path.join("/tmp", "uploads");
 if (!fs.existsSync(uploadPath)) fs.mkdirSync(uploadPath, { recursive: true });
 
-// Create app
+// ---------------------------
+// Express setup
+// ---------------------------
 const app = express();
 const PORT = process.env.PORT || 5000;
 
@@ -43,57 +44,54 @@ const videoSchema = new mongoose.Schema({
   likes: { type: Number, default: 0 },
   createdAt: { type: Date, default: Date.now },
 });
-
 const Video = mongoose.model("Video", videoSchema);
 
 // ---------------------------
-// Upload Setup
+// Multer Upload Setup
 // ---------------------------
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, uploadPath),
-  filename: (req, file, cb) => {
-    const ext = path.extname(file.originalname);
-    cb(null, `${Date.now()}${ext}`);
-  },
+  filename: (req, file, cb) => cb(null, `${Date.now()}${path.extname(file.originalname)}`),
 });
-
 const upload = multer({ storage });
 
 // ---------------------------
-// API Routes
+// API ROUTES
 // ---------------------------
 
-// Upload video
+// ✅ Upload video route
 app.post("/api/upload", upload.single("video"), async (req, res) => {
   try {
+    if (!req.file) {
+      return res.status(400).json({ message: "No file uploaded" });
+    }
+
     const video = new Video({
       title: req.body.title || "Untitled",
       filename: req.file.filename,
     });
+
     await video.save();
     res.json({ message: "✅ Upload successful!", video });
   } catch (err) {
-    console.error("Upload error:", err);
-    res.status(500).json({ message: "❌ Upload failed." });
+    console.error("❌ Upload error:", err);
+    res.status(500).json({ message: "Upload failed" });
   }
 });
 
-// Get all videos
+// ✅ Get videos
 app.get("/api/videos", async (req, res) => {
   const videos = await Video.find().sort({ createdAt: -1 });
   res.json(videos);
 });
 
-// Serve uploaded video files
+// ✅ Serve uploaded files (for testing locally)
 app.use("/uploads", express.static(uploadPath));
 
-// ---------------------------
-// Serve React Frontend
-// ---------------------------
+// ✅ Serve React frontend build
 const frontendPath = path.resolve(__dirname, "../frontend/build");
 app.use(express.static(frontendPath));
 
-// Handle React routes
 app.get("*", (req, res) => {
   res.sendFile(path.join(frontendPath, "index.html"), (err) => {
     if (err) {
@@ -106,6 +104,4 @@ app.get("*", (req, res) => {
 // ---------------------------
 // Start Server
 // ---------------------------
-app.listen(PORT, () =>
-  console.log(`🚀 Server running on port ${PORT}`)
-);
+app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
