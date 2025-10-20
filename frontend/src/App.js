@@ -2,62 +2,51 @@ import React, { useState, useEffect } from "react";
 
 function App() {
   const [videos, setVideos] = useState([]);
-  const [file, setFile] = useState(null);
-  const [title, setTitle] = useState("");
-  const [uploading, setUploading] = useState(false);
-  const [progress, setProgress] = useState(0);
-  const [search, setSearch] = useState("");
+  const [uploadProgress, setUploadProgress] = useState(0);
 
   useEffect(() => {
     fetch("https://avarri-1.onrender.com/videos")
       .then((res) => res.json())
       .then((data) => setVideos(data))
-      .catch((err) => console.error(err));
+      .catch((err) => console.error("Error fetching videos:", err));
   }, []);
 
-  const handleFileChange = (e) => {
-    setFile(e.target.files[0]);
-  };
-
-  const handleUpload = async () => {
-    if (!file || !title.trim()) {
-      alert("Please select a video and enter a title before uploading.");
-      return;
-    }
+  const handleUpload = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
 
     const formData = new FormData();
     formData.append("video", file);
-    formData.append("title", title);
-
-    setUploading(true);
-    setProgress(0);
 
     try {
-      const response = await fetch("https://avarri-1.onrender.com/upload", {
-        method: "POST",
-        body: formData,
-      });
+      const xhr = new XMLHttpRequest();
+      xhr.open("POST", "https://avarri-1.onrender.com/upload", true);
 
-      if (response.ok) {
-        alert("Video uploaded successfully!");
-        setFile(null);
-        setTitle("");
-        setUploading(false);
-        setProgress(100);
-        const newVideo = await response.json();
-        setVideos((prev) => [newVideo, ...prev]);
-      } else {
-        alert("Upload failed.");
-      }
-    } catch (err) {
-      console.error(err);
+      xhr.upload.onprogress = (event) => {
+        if (event.lengthComputable) {
+          const percent = Math.round((event.loaded / event.total) * 100);
+          setUploadProgress(percent);
+        }
+      };
+
+      xhr.onload = function () {
+        if (xhr.status === 200) {
+          alert("Video uploaded successfully!");
+          setUploadProgress(0);
+          fetch("https://avarri-1.onrender.com/videos")
+            .then((res) => res.json())
+            .then((data) => setVideos(data));
+        } else {
+          alert("Upload failed.");
+        }
+      };
+
+      xhr.send(formData);
+    } catch (error) {
+      console.error("Error uploading video:", error);
       alert("An error occurred during upload.");
     }
   };
-
-  const filteredVideos = videos.filter((v) =>
-    v.title.toLowerCase().includes(search.toLowerCase())
-  );
 
   return (
     <div className="bg-gray-100 min-h-screen">
@@ -65,68 +54,49 @@ function App() {
       <header className="bg-white shadow-md p-4 flex justify-between items-center">
         <h1 className="text-xl font-bold text-red-600">Avarri</h1>
 
-        {/* Search Bar */}
         <input
           type="text"
           placeholder="Search..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
           className="w-1/2 px-4 py-2 border rounded-full"
         />
 
-        {/* Upload Button */}
         <label className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 cursor-pointer">
-          Select Video
+          Upload
           <input
             type="file"
             accept="video/*"
-            onChange={handleFileChange}
+            onChange={handleUpload}
             className="hidden"
           />
         </label>
       </header>
 
-      {/* Upload Section */}
-      {file && (
-        <div className="bg-white p-4 shadow-md rounded-lg m-4">
-          <video
-            src={URL.createObjectURL(file)}
-            controls
-            className="w-full h-64 rounded-md mb-3"
-          ></video>
-          <input
-            type="text"
-            placeholder="Enter video title..."
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            className="w-full p-2 border rounded-md mb-3"
-          />
-          <button
-            onClick={handleUpload}
-            className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
-            disabled={uploading}
-          >
-            {uploading ? `Uploading... ${progress}%` : "Upload Video"}
-          </button>
+      {/* Upload progress bar */}
+      {uploadProgress > 0 && (
+        <div className="w-1/2 mx-auto mt-4 bg-gray-300 rounded-full h-4 overflow-hidden">
+          <div
+            className="bg-green-500 h-4 transition-all duration-300"
+            style={{ width: `${uploadProgress}%` }}
+          ></div>
         </div>
       )}
 
-      {/* Video Grid */}
+      {/* Video grid */}
       <main className="p-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {filteredVideos.map((video) => (
+        {videos.map((video) => (
           <div
             key={video._id}
-            className="bg-white rounded-xl overflow-hidden shadow hover:shadow-lg transition"
+            className="bg-white rounded-xl overflow-hidden shadow hover:shadow-lg"
           >
             <video
-              src={video.url}
+              src={`https://avarri-1.onrender.com/${video.filePath}`}
               controls
               className="w-full h-48 object-cover"
             ></video>
             <div className="p-4">
               <h2 className="text-lg font-semibold">{video.title}</h2>
-              <p className="text-sm text-gray-600">
-                Views: {video.views || 0} • Likes: {video.likes || 0}
+              <p className="text-sm text-gray-500">
+                Views: {video.views} • Likes: {video.likes}
               </p>
             </div>
           </div>
@@ -137,4 +107,3 @@ function App() {
 }
 
 export default App;
-
