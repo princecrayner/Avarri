@@ -1,5 +1,6 @@
 // server.js
 
+
 import express from "express";
 import mongoose from "mongoose";
 import cors from "cors";
@@ -30,11 +31,12 @@ app.use(express.json());
 app.use("/uploads", express.static(uploadDir));
 
 // -------------------------------------
+// -------------------------------------
 // MongoDB setup
 // -------------------------------------
 mongoose
   .connect(
-    "mongodb+srv://princecrayner_db_user:JUNIOR80@cluster0.toxhpdn.mongodb.net/avarri?retryWrites=true&w=majority",
+    "mongodb+srv://princecrayner_db_user:JUNIOR80@cluster0.toxhpdn.mongodb.net/avarridb?retryWrites=true&w=majority&appName=Cluster0",
     { useNewUrlParser: true, useUnifiedTopology: true }
   )
   .then(() => console.log("✅ Connected to MongoDB"))
