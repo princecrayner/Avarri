@@ -1,107 +1,156 @@
 import React, { useState, useEffect } from "react";
+import axios from "axios";
 
 function App() {
+  const [title, setTitle] = useState("");
+  const [video, setVideo] = useState(null);
   const [videos, setVideos] = useState([]);
   const [uploadProgress, setUploadProgress] = useState(0);
 
+  const backendURL = "http://localhost:5000"; // change to your Render URL later
+
+  // Fetch videos
   useEffect(() => {
-    fetch("https://avarri-1.onrender.com/videos")
-      .then((res) => res.json())
-      .then((data) => setVideos(data))
-      .catch((err) => console.error("Error fetching videos:", err));
+    fetchVideos();
   }, []);
 
-  const handleUpload = async (event) => {
-    const file = event.target.files[0];
-    if (!file) return;
+  const fetchVideos = async () => {
+    const res = await axios.get(`${backendURL}/videos`);
+    setVideos(res.data);
+  };
+
+  // Upload handler
+  const handleUpload = async (e) => {
+    e.preventDefault();
+    if (!video || !title) return alert("Please add a title and choose a video.");
 
     const formData = new FormData();
-    formData.append("video", file);
+    formData.append("title", title);
+    formData.append("video", video);
 
     try {
-      const xhr = new XMLHttpRequest();
-      xhr.open("POST", "https://avarri-1.onrender.com/upload", true);
-
-      xhr.upload.onprogress = (event) => {
-        if (event.lengthComputable) {
-          const percent = Math.round((event.loaded / event.total) * 100);
+      const res = await axios.post(`${backendURL}/upload`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+        onUploadProgress: (progressEvent) => {
+          const percent = Math.round(
+            (progressEvent.loaded * 100) / progressEvent.total
+          );
           setUploadProgress(percent);
-        }
-      };
+        },
+      });
 
-      xhr.onload = function () {
-        if (xhr.status === 200) {
-          alert("Video uploaded successfully!");
-          setUploadProgress(0);
-          fetch("https://avarri-1.onrender.com/videos")
-            .then((res) => res.json())
-            .then((data) => setVideos(data));
-        } else {
-          alert("Upload failed.");
-        }
-      };
-
-      xhr.send(formData);
-    } catch (error) {
-      console.error("Error uploading video:", error);
-      alert("An error occurred during upload.");
+      if (res.data.success) {
+        alert("Upload successful!");
+        setUploadProgress(0);
+        setTitle("");
+        setVideo(null);
+        fetchVideos();
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Upload failed.");
+      setUploadProgress(0);
     }
   };
 
-  return (
-    <div className="bg-gray-100 min-h-screen">
-      {/* Header */}
-      <header className="bg-white shadow-md p-4 flex justify-between items-center">
-        <h1 className="text-xl font-bold text-red-600">Avarri</h1>
+  // Like handler
+  const handleLike = async (id) => {
+    await axios.post(`${backendURL}/like/${id}`);
+    fetchVideos();
+  };
 
+  // View handler
+  const handleView = async (id) => {
+    await axios.post(`${backendURL}/view/${id}`);
+    fetchVideos();
+  };
+
+  return (
+    <div style={{ padding: "20px", maxWidth: "600px", margin: "auto" }}>
+      <h2 style={{ textAlign: "center" }}>🎬 Avarri Video Upload</h2>
+
+      <form onSubmit={handleUpload} style={{ marginBottom: "20px" }}>
         <input
           type="text"
-          placeholder="Search..."
-          className="w-1/2 px-4 py-2 border rounded-full"
+          placeholder="Enter video title"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          required
+          style={{ width: "100%", padding: "10px", marginBottom: "10px" }}
         />
 
-        <label className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 cursor-pointer">
+        <input
+          type="file"
+          accept="video/*"
+          onChange={(e) => setVideo(e.target.files[0])}
+          required
+        />
+
+        <button
+          type="submit"
+          style={{
+            display: "block",
+            marginTop: "10px",
+            padding: "10px",
+            width: "100%",
+            backgroundColor: "#007bff",
+            color: "white",
+            border: "none",
+            cursor: "pointer",
+          }}
+        >
           Upload
-          <input
-            type="file"
-            accept="video/*"
-            onChange={handleUpload}
-            className="hidden"
-          />
-        </label>
-      </header>
+        </button>
 
-      {/* Upload progress bar */}
-      {uploadProgress > 0 && (
-        <div className="w-1/2 mx-auto mt-4 bg-gray-300 rounded-full h-4 overflow-hidden">
+        {uploadProgress > 0 && (
           <div
-            className="bg-green-500 h-4 transition-all duration-300"
-            style={{ width: `${uploadProgress}%` }}
-          ></div>
-        </div>
-      )}
-
-      {/* Video grid */}
-      <main className="p-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {videos.map((video) => (
-          <div
-            key={video._id}
-            className="bg-white rounded-xl overflow-hidden shadow hover:shadow-lg"
+            style={{
+              marginTop: "10px",
+              background: "#eee",
+              borderRadius: "5px",
+              height: "10px",
+              overflow: "hidden",
+            }}
           >
-           <video
-  src={`https://avarri-1.onrender.com/uploads/${video.filename}`}
-  controls
-  className="rounded-xl w-full"
-></video>
- <div className="p-4">
-              <h2 className="text-lg font-semibold">{video.title}</h2>
-              <p className="text-sm text-gray-500">
-                Views: {video.views} • Likes: {video.likes}
-              </p>
-            </div>
+            <div
+              style={{
+                width: `${uploadProgress}%`,
+                height: "100%",
+                background: "#007bff",
+              }}
+            ></div>
           </div>
-        ))}
-      </main>
+        )}
+      </form>
+
+      <h3>📺 Videos</h3>
+
+      {videos.length === 0 && <p>No videos uploaded yet.</p>}
+
+      {videos.map((vid) => (
+        <div
+          key={vid._id}
+          style={{
+            border: "1px solid #ddd",
+            borderRadius: "10px",
+            padding: "10px",
+            marginBottom: "20px",
+          }}
+        >
+          <h4>{vid.title}</h4>
+          <video
+            width="100%"
+            height="auto"
+            controls
+            onPlay={() => handleView(vid._id)}
+            src={vid.videoUrl}
+          ></video>
+          <div style={{ marginTop: "5px" }}>
+            <button onClick={() => handleLike(vid._id)}>👍 {vid.likes}</button>
+            <span style={{ marginLeft: "10px" }}>👁 {vid.views}</span>
+          </div>
+        </div>
+      ))}
     </div>
   );
 }
