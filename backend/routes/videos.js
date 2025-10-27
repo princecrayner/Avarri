@@ -1,20 +1,19 @@
 // backend/routes/videos.js
-
-import express from "express";
-import multer from "multer"; // ✅ Make sure multer is imported
-import { v2 as cloudinary } from "cloudinary";
-import { CloudinaryStorage } from "multer-storage-cloudinary";
+const express = require("express");
+const multer = require("multer");
+const { v2: cloudinary } = require("cloudinary");
+const { CloudinaryStorage } = require("multer-storage-cloudinary");
 
 const router = express.Router();
 
-// Configure Cloudinary
+// Cloudinary config
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-// Configure Cloudinary storage for videos
+// Cloudinary video storage setup
 const storage = new CloudinaryStorage({
   cloudinary,
   params: {
@@ -24,23 +23,22 @@ const storage = new CloudinaryStorage({
   },
 });
 
-// Initialize multer with Cloudinary storage
+// Multer upload settings
 const upload = multer({
   storage,
   limits: { fileSize: 2000 * 1024 * 1024 }, // up to ~2GB
 });
 
-// POST route for uploading video
+// Upload route
 router.post("/upload", upload.single("video"), async (req, res) => {
   try {
-    const result = req.file;
     const { title } = req.body;
-
+    const file = req.file;
     res.json({
       success: true,
       title,
-      url: result.path,
-      public_id: result.filename,
+      url: file.path,
+      public_id: file.filename,
     });
   } catch (err) {
     console.error("Upload Error:", err);
@@ -48,4 +46,4 @@ router.post("/upload", upload.single("video"), async (req, res) => {
   }
 });
 
-export default router;
+module.exports = router; // ✅ export router
