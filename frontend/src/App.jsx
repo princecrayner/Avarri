@@ -28,7 +28,7 @@ export default function App() {
   return (
     <div className="container">
       <div className="header">
-        <h1>Avarri</h1>
+        <h1><span className="brand">Avarri</span></h1>
         <div>Share, watch & like videos</div>
       </div>
 
