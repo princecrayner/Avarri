@@ -1,49 +1,68 @@
-// backend/routes/videos.js
-const express = require("express");
-const multer = require("multer");
-const { v2: cloudinary } = require("cloudinary");
-const { CloudinaryStorage } = require("multer-storage-cloudinary");
+import express from "express";
+import multer from "multer";
+import cloudinary from "cloudinary";
+import { CloudinaryStorage } from "multer-storage-cloudinary";
+import dotenv from "dotenv";
 
+dotenv.config();
 const router = express.Router();
 
-// Cloudinary config
-cloudinary.config({
+// Configure Cloudinary
+cloudinary.v2.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-// Cloudinary video storage setup
+// Set storage to upload directly to Cloudinary
 const storage = new CloudinaryStorage({
-  cloudinary,
+  cloudinary: cloudinary.v2,
   params: {
-    folder: "avarri_uploads",
+    folder: "Avarri",
     resource_type: "video",
-    allowed_formats: ["mp4", "mov", "mkv", "avi"],
   },
 });
 
-// Multer upload settings
-const upload = multer({
-  storage,
-  limits: { fileSize: 2000 * 1024 * 1024 }, // up to ~2GB
-});
+const upload = multer({ storage });
 
-// Upload route
+// Upload video route
 router.post("/upload", upload.single("video"), async (req, res) => {
   try {
     const { title } = req.body;
-    const file = req.file;
+    const videoUrl = req.file.path;
+
+    // Example MongoDB entry (optional)
+    // await Video.create({ title, url: videoUrl });
+
     res.json({
-      success: true,
+      message: "Video uploaded successfully!",
       title,
-      url: file.path,
-      public_id: file.filename,
+      url: videoUrl,
     });
-  } catch (err) {
-    console.error("Upload Error:", err);
-    res.status(500).json({ success: false, message: "Video upload failed" });
+  } catch (error) {
+    console.error("Upload failed:", error);
+    res.status(500).json({ message: "Upload failed", error });
   }
 });
 
-module.exports = router; // ✅ export router
+export default router;
+// ✅ GET all uploaded videos
+router.get("/", (req, res) => {
+  const fs = require("fs");
+  const path = require("path");
+
+  const uploadDir = path.join(__dirname, "../../uploads");
+
+  fs.readdir(uploadDir, (err, files) => {
+    if (err) {
+      return res.status(500).json({ message: "Failed to read uploads" });
+    }
+
+    const videos = files.map((filename) => ({
+      name: filename,
+      url: `/uploads/${filename}`,
+    }));
+
+    res.json(videos);
+  });
+});

@@ -1,66 +1,63 @@
-import React, { useEffect, useState } from 'react'
-import Upload from './components/Upload'
-import VideoCard from './components/VideoCard'
-import API from './api'
+import React, { useState, useEffect } from "react";
+import Upload from "./components/Upload";
+import VideoCard from "./components/VideoCard";
 
-export default function App() {
-  const [videos, setVideos] = useState([])
-const [searchTerm, setSearchTerm] = useState("");
+function App() {
+  const [videos, setVideos] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [showUpload, setShowUpload] = useState(false);
 
-  const fetchVideos = async () => {
-    try {
-      const res = await API.get('/videos')
-      setVideos(res.data.videos)
-    } catch (err) {
-      console.error(err)
-    }
-  }
-
-  useEffect(() => { fetchVideos() }, [])
+  useEffect(() => {
+    fetch("http://localhost:5000/api/videos")
+      .then((res) => res.json())
+      .then(setVideos)
+      .catch(console.error);
+  }, []);
 
   const handleUploaded = (video) => {
-    setVideos(prev => [video, ...prev])
-  }
-
-  const handleLikeUpdate = (updated) => {
-    setVideos(prev => prev.map(v => v._id === updated._id ? updated : v))
-  }
+    setVideos((prev) => [video, ...prev]);
+  };
 
   return (
     <div className="container">
-<div className="top-bar">
-  <h1 className="logo">Avarri</h1>
+      <div className="top-bar">
+        <h1 className="logo">Avarri</h1>
 
-  <input
-    type="text"
-    className="search-bar"
-    placeholder="Search..."
-    value={searchTerm}
-    onChange={(e) => setSearchTerm(e.target.value)}
-  />
+        <input
+          type="text"
+          className="search-bar"
+          placeholder="Search..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
 
-  <button
-    className="upload-btn"
-    onClick={() =>
-      document.getElementById("upload-section").scrollIntoView({ behavior: "smooth" })
-    }
-  >
-    Upload
-  </button>
-</div>
+        <button
+          className="upload-btn"
+          onClick={() => document.getElementById("fileInput").click()}
+        >
+          Upload
+        </button>
 
-      <Upload onUploaded={handleUploaded} />
+        <input
+          id="fileInput"
+          type="file"
+          accept="video/*"
+          style={{ display: "none" }}
+          onChange={(e) => alert(`Selected: ${e.target.files[0]?.name}`)}
+        />
+      </div>
 
       <div className="video-grid">
         {videos
           .filter((v) =>
-
-    v.title.toLowerCase().includes(searchTerm.toLowerCase())
+            v.title.toLowerCase().includes(searchTerm.toLowerCase())
           )
           .map((video) => (
             <VideoCard key={video._id} video={video} />
-        ))}
+          ))}
       </div>
     </div>
-  )
+  );
 }
+
+export default App;
