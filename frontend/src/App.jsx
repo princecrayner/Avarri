@@ -30,6 +30,13 @@ export default function App() {
       <div className="header">
         <h1><span className="brand">Avarri</span></h1>
         <div>Share, watch & like videos</div>
+        <button
+          className="upload-btn"
+          onClick={() => document.getElementById("upload-section").scrollIntoView({ behavior: "smooth" })}
+        >
+          Upload
+        </button>
+
       </div>
 
       <Upload onUploaded={handleUploaded} />

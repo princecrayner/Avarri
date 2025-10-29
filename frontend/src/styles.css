@@ -1,4 +1,4 @@
-body { font-family: Arial, Helvetica, sans-serif; margin: 0; padding: 10px; }
+}body { font-family: Arial, Helvetica, sans-serif; margin: 0; padding: 10px; }
 .container { max-width: 900px; margin: 0 auto; }
 .header { display:flex; align-items:center; gap:12px; }
 .upload-box { border:1px solid #ddd; padding:12px; margin-top:12px; }
@@ -9,4 +9,25 @@ body { font-family: Arial, Helvetica, sans-serif; margin: 0; padding: 10px; }
 .brand {
   color: red;
   font-weight: bold;
+}
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: white;
+  padding: 15px 30px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+.upload-btn {
+  background-color: #007BFF;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+.upload-btn:hover {
+  background-color: #0056b3;
 }
