@@ -28,25 +28,26 @@ const [searchTerm, setSearchTerm] = useState("");
 
   return (
     <div className="container">
-      <div className="header">
-        <h1><span className="brand">Avarri</span></h1>
+<div className="top-bar">
+  <h1 className="logo">Avarri</h1>
 
-        <input
-          type="text"
-          ClassName="search-bar"
-          placeholder="search"
-          value={searchTerm}
-          onChange={(e) =>
-    setSearchterm(e.target.value)}
-        />
+  <input
+    type="text"
+    className="search-bar"
+    placeholder="Search..."
+    value={searchTerm}
+    onChange={(e) => setSearchTerm(e.target.value)}
+  />
 
-        <button className="upload-btn"onClick={() =>
-    document.getElementById("upload-section").scrollIntoView({ behaviour: "smooth" })
-          }
-        >
-          upload 
-        </button>
-      </div>
+  <button
+    className="upload-btn"
+    onClick={() =>
+      document.getElementById("upload-section").scrollIntoView({ behavior: "smooth" })
+    }
+  >
+    Upload
+  </button>
+</div>
 
       <Upload onUploaded={handleUploaded} />
 
