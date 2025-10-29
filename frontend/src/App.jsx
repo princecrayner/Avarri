@@ -5,6 +5,7 @@ import API from './api'
 
 export default function App() {
   const [videos, setVideos] = useState([])
+const [searchTerm, setSearchTerm] = useState("");
 
   const fetchVideos = async () => {
     try {
@@ -29,21 +30,34 @@ export default function App() {
     <div className="container">
       <div className="header">
         <h1><span className="brand">Avarri</span></h1>
-        <div>Share, watch & like videos</div>
-        <button
-          className="upload-btn"
-          onClick={() => document.getElementById("upload-section").scrollIntoView({ behavior: "smooth" })}
-        >
-          Upload
-        </button>
 
+        <input
+          type="text"
+          ClassName="search-bar"
+          placeholder="search"
+          value={searchTerm}
+          onChange={(e) =>
+    setSearchterm(e.target.value)}
+        />
+
+        <button className="upload-btn"onClick={() =>
+    document.getElementById("upload-section").scrollIntoView({ behaviour: "smooth" })
+          }
+        >
+          upload 
+        </button>
       </div>
 
       <Upload onUploaded={handleUploaded} />
 
       <div className="video-grid">
-        {videos.map(v => (
-          <VideoCard key={v._id} video={v} onLike={handleLikeUpdate} />
+        {videos
+          .filter((v) =>
+
+    v.title.toLowerCase().includes(searchTerm.toLowerCase())
+          )
+          .map((video) => (
+            <VideoCard key={video._id} video={video} />
         ))}
       </div>
     </div>
