@@ -1,22 +1,17 @@
+// frontend/src/components/VideoCard.jsx
 import React from "react";
-import API from "../api";
 
-export default function VideoCard({ video, onLike }) {
-  const handleLike = async () => {
-    try {
-      const res = await API.put(`/videos/like/${video._id}`);
-      onLike(res.data.video);
-    } catch (err) {
-      console.error(err);
-    }
-  };
+export default function VideoCard({ video }) {
+  const src = video.videoUrl || video.url || video.filePath || video.path || video.name || "";
 
   return (
-    <div className="video-card">
-      <video src={video.url} controls width="100%" />
-      <h3>{video.title}</h3>
-      <p>{video.views} views</p>
-      <button onClick={handleLike}>❤️ {video.likes}</button>
-    </div>
+    <article className="video-card">
+      <div className="video-frame">
+        <video className="video-player" controls src={src} />
+      </div>
+      <div className="video-meta">
+        <div className="meta-text">Views: {video.views ?? 0} • Likes: {video.likes ?? 0}</div>
+      </div>
+    </article>
   );
 }
