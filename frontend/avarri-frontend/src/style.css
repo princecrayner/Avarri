@@ -1,0 +1,76 @@
+/* ---------- GLOBAL ----------- */
+body {
+  margin: 0;
+  background: #f8f9fa;
+  font-family: Arial, sans-serif;
+  color: #222;
+}
+
+.container {
+  max-width: 900px;
+  margin: auto;
+  padding: 20px;
+}
+
+/* ---------- HEADER ----------- */
+h1 {
+  text-align: center;
+  color: #c62828;
+  margin-bottom: 20px;
+}
+
+/* ---------- UPLOAD FORM ----------- */
+.upload-box {
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  margin-bottom: 25px;
+  box-shadow: 0px 0px 10px rgba(0,0,0,0.1);
+}
+
+input[type="text"],
+textarea {
+  width: 100%;
+  padding: 10px;
+  margin-top: 10px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  font-size: 15px;
+}
+
+input[type="file"] {
+  margin-top: 10px;
+}
+
+button {
+  margin-top: 15px;
+  padding: 10px 15px;
+  background: #c62828;
+  border: none;
+  color: white;
+  font-size: 16px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #a61e1e;
+}
+
+/* ---------- VIDEO LIST ----------- */
+.video-card {
+  background: white;
+  margin-bottom: 25px;
+  padding: 15px;
+  border-radius: 10px;
+  box-shadow: 0px 0px 8px rgba(0,0,0,0.08);
+}
+
+.video-card h3 {
+  margin-bottom: 10px;
+}
+
+.video-card p {
+  margin-top: 5px;
+  color: #444;
+}
