@@ -14,7 +14,6 @@ body {
 
 /* ---------- HEADER ----------- */
 h1 {
-  text-align: center;
   color: #c62828;
   margin-bottom: 20px;
 }
@@ -45,7 +44,7 @@ input[type="file"] {
 button {
   margin-top: 15px;
   padding: 10px 15px;
-  background: #c62828;
+  background: blue;
   border: none;
   color: white;
   font-size: 16px;
