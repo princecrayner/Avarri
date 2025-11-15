@@ -10,6 +10,7 @@ function App() {
   const [file, setFile] = useState(null);
   const [title, setTitle] = useState("");
   const [desc, setDesc] = useState("");
+  const [search, setSearch] = useState("");
 
   // Load videos when page loads
   useEffect(() => {
@@ -71,6 +72,15 @@ function App() {
   return (
     <div className="container">
       <h1>Avarri</h1>
+    <div className="search-container">
+  <input
+    type="text"
+    className="search-input"
+    placeholder="Search"
+    value={search}
+    onChange={(e) => setSearch(e.target.value)}
+  />
+</div>
 
       {/* Upload Section */}
       <section className="upload-box">
@@ -107,7 +117,13 @@ function App() {
         {videos.length === 0 ? (
           <p>No videos uploaded yet.</p>
         ) : (
-          videos.map((v) => (
+          videos
+            .filter((v) =>
+              v.title.toLowerCase().includes(search.toLowerCase()) ||
+              v.description.toLowerCase().includes(search.toLowerCase())
+            )
+            .map((v) => (
+
             <div key={v._id} className="video-card">
               <h3>{v.title}</h3>
 
