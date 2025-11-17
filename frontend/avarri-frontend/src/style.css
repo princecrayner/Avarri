@@ -42,7 +42,9 @@ input[type="file"] {
 }
 
 button {
-  margin-top: 15px;
+  position: fixed;
+  top: 20px;
+  right: 20px;
   padding: 10px 15px;
   background: blue;
   border: none;
@@ -50,6 +52,7 @@ button {
   font-size: 16px;
   border-radius: 6px;
   cursor: pointer;
+  z-index: 999;
 }
 
 button:hover {
