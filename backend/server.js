@@ -1,35 +1,36 @@
-require('dotenv').config();
-const express = require('express');
-const mongoose = require('mongoose');
-const cors = require('cors');
-const { v2: cloudinary } = require('cloudinary');
+import express from "express";
+import cors from "cors";
+import dotenv from "dotenv";
+import mongoose from "mongoose";
 
-const videoRoutes = require('./routes/videos');
+import videoRoutes from "./routes/videoRoutes.js";
 
+dotenv.config();
 const app = express();
-app.use(cors());
+
+// Middlewares
 app.use(express.json());
+app.use(cors({
+  origin: "https://avarri.onrender.com", // frontend domain
+  methods: ["GET", "POST"],
+}));
 
-// Configure Cloudinary
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
-});
-
-// Connect to MongoDB
-mongoose.connect(process.env.MONGO_URI, {
+// Connect MongoDB
+mongoose.connect(process.env.MONGO_URL, {
   useNewUrlParser: true,
-  useUnifiedTopology: true,
-}).then(() => console.log('MongoDB connected'))
-  .catch(err => console.error('MongoDB connection error:', err));
+  useUnifiedTopology: true
+})
+.then(() => console.log("✅ MongoDB connected"))
+.catch(err => console.error("❌ MongoDB Connection Error:", err));
 
 // Routes
-app.use('/api/videos', videoRoutes);
+app.use("/api", videoRoutes);
 
-// Simple health
-app.get('/', (req, res) => res.send('Avarri backend running'));
+// Default route
+app.get("/", (req, res) => {
+  res.send("Avarri backend is running.");
+});
 
-// Start server
+// Render chooses its own port
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server listening on ${PORT}`));
+app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));

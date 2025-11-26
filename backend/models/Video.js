@@ -1,14 +1,10 @@
-const mongoose = require('mongoose');
+import mongoose from "mongoose";
 
-const VideoSchema = new mongoose.Schema({
-  title: { type: String, required: true },
+const videoSchema = new mongoose.Schema({
+  title: String,
   description: String,
-  cloudinaryPublicId: { type: String, required: true },
-  cloudinaryUrl: { type: String, required: true },
-  duration: Number,
-  size: Number,
-  uploader: { type: String, default: 'anonymous' },
+  url: String,
   createdAt: { type: Date, default: Date.now }
 });
 
-module.exports = mongoose.model('Video', VideoSchema);
+export default mongoose.model("Video", videoSchema);
